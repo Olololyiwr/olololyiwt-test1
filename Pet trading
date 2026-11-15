@@ -1173,7 +1173,7 @@ local function showDropPanel(parent)
 end
 
 --==================================================
--- AUTO SELL SINGLE / MULTI
+-- AUTO SELL FIX V2 - SINGLE / MULTI
 --==================================================
 
 local function showSellPanel(parent)
@@ -1197,11 +1197,12 @@ local function showSellPanel(parent)
     arrow.TextXAlignment=Enum.TextXAlignment.Center
 
     local body=new("Frame",{
-        Position=UDim2.new(0,8,0,43),
-        Size=UDim2.new(1,-16,0,292),
+        Position=UDim2.new(0,43,0,0),
+        Size=UDim2.new(1,-16,0,300),
         BackgroundTransparency=1
     },panel)
 
+    -- STATE
     local expanded=false
     local mode="Single"
     local busy=false
@@ -1210,12 +1211,14 @@ local function showSellPanel(parent)
     local quantity=1
     local dropdown=false
 
+    -- MODE BUTTONS
     local single=button(body,"SINGLE",
         UDim2.new(0,0,0,0),UDim2.new(.5,-3,0,30),ORANGE,nil,9)
 
     local multi=button(body,"MULTI",
         UDim2.new(.5,3,0,0),UDim2.new(.5,-3,0,30),PANEL,nil,9)
 
+    -- CHOOSE
     local choose=button(body,"Choose pet  ▼",
         UDim2.new(0,0,0,36),UDim2.new(1,0,0,32),PANEL,nil,10)
     choose.TextXAlignment=Enum.TextXAlignment.Left
@@ -1223,17 +1226,19 @@ local function showSellPanel(parent)
     local info=label(body,"Choose a pet",
         UDim2.new(0,2,0,70),UDim2.new(1,-4,0,19),ORANGE,10,true)
 
+    -- INVENTORY DROPDOWN
     local menu=new("Frame",{
         Position=UDim2.new(0,0,0,105),
-        Size=UDim2.new(1,0,0,115),
+        Size=UDim2.new(1,0,0,145),
         BackgroundColor3=PANEL,
         BorderSizePixel=0,
         Visible=false,
-        ZIndex=30
+        ZIndex=50,
+        Active=true
     },body)
 
     corner(menu,8)
-    stroke(menu,ORANGE,1,.3)
+    stroke(menu,ORANGE,1,.2)
 
     local search=new("TextBox",{
         Position=UDim2.new(0,5,0,5),
@@ -1247,7 +1252,8 @@ local function showSellPanel(parent)
         TextSize=10,
         ClearTextOnFocus=false,
         BorderSizePixel=0,
-        ZIndex=31
+        ZIndex=51,
+        Active=true
     },menu)
     corner(search,6)
 
@@ -1257,17 +1263,21 @@ local function showSellPanel(parent)
         BackgroundTransparency=1,
         BorderSizePixel=0,
         ScrollBarThickness=3,
+        ScrollBarImageColor3=ORANGE,
         CanvasSize=UDim2.new(),
         AutomaticCanvasSize=Enum.AutomaticSize.Y,
-        ZIndex=31
+        ZIndex=51,
+        Active=true
     },menu)
 
     new("UIListLayout",{
-        Padding=UDim.new(0,3)
+        Padding=UDim.new(0,3),
+        SortOrder=Enum.SortOrder.LayoutOrder
     },list)
 
+    -- QUANTITY
     local minus=button(body,"−",
-        UDim2.new(0,0,0,100),UDim2.fromOffset(38,30),PANEL,nil,17)
+        UDim2.new(0,0,0,100),UDim2.fromOffset(38,30),RED,nil,17)
 
     local quantityBox=new("TextBox",{
         Position=UDim2.new(0,43,0,100),
@@ -1283,11 +1293,12 @@ local function showSellPanel(parent)
     corner(quantityBox,7)
 
     local plus=button(body,"+",
-        UDim2.new(1,-78,0,100),UDim2.fromOffset(38,30),PANEL,nil,17)
+        UDim2.new(1,-78,0,100),UDim2.fromOffset(38,30),GREEN,nil,17)
 
     local max=button(body,"MAX",
         UDim2.new(1,-38,0,100),UDim2.fromOffset(38,30),PANEL,nil,8)
 
+    -- MULTI CONTROLS
     local selectAll=button(body,"☑ SELECT ALL",
         UDim2.new(0,0,0,137),UDim2.new(1,0,0,28),PANEL,nil,9)
 
@@ -1296,27 +1307,34 @@ local function showSellPanel(parent)
 
     local sellSelected=button(body,"SELL SELECTED",
         UDim2.new(0,0,0,174),UDim2.new(1,0,0,34),GREEN,nil,10)
+
     sellSelected.Visible=false
 
+    -- INFO
     local function updateInfo()
         if mode=="Single" then
+            local count=selectedOne and getCount(selectedOne) or 0
+
             info.Text=selectedOne
-                and ("IN INVENTORY: "..getCount(selectedOne))
+                and ("IN INVENTORY: "..count)
                 or "Choose one pet"
+
             choose.Text=selectedOne
                 and (getPetName(selectedOne).."  ▼")
                 or "Choose pet  ▼"
         else
             local types,total=0,0
+
             for id,selected in pairs(selectedMulti) do
                 if selected then
-                    local c=getCount(id)
-                    if c>0 then
+                    local count=getCount(id)
+                    if count>0 then
                         types+=1
-                        total+=c
+                        total+=count
                     end
                 end
             end
+
             info.Text="Selected: "..types.." types • "..total.." pets"
             choose.Text="CHOOSE PETS  ▼"
         end
@@ -1324,43 +1342,69 @@ local function showSellPanel(parent)
 
     local function updateMode()
         local isSingle=mode=="Single"
+
         single.BackgroundColor3=isSingle and ORANGE or PANEL
         multi.BackgroundColor3=not isSingle and ORANGE or PANEL
+
         minus.Visible=isSingle
         plus.Visible=isSingle
         max.Visible=isSingle
         quantityBox.Visible=isSingle
+
         selectAll.Visible=not isSingle
         sellOne.Visible=isSingle
         sellSelected.Visible=not isSingle
+
         updateInfo()
     end
 
+    -- REFRESH INVENTORY LIST
     local function refreshList()
         for _,obj in ipairs(list:GetChildren()) do
-            if obj:IsA("GuiObject") then obj:Destroy() end
+            if obj:IsA("GuiObject") then
+                obj:Destroy()
+            end
         end
 
         local query=search.Text:lower()
+        local entries=getInventoryPets()
         local found=0
 
-        for _,entry in ipairs(getInventoryPets()) do
-            if query=="" or entry.name:lower():find(query,1,true)
-                or tostring(entry.id):find(query,1,true) then
+        for _,entry in ipairs(entries) do
+            local matches=query==""
+                or entry.name:lower():find(query,1,true)
+                or tostring(entry.id):find(query,1,true)
 
+            if matches then
                 found+=1
 
-                local selected=mode=="Single"
-                    and selectedOne==entry.id
-                    or mode=="Multi" and selectedMulti[entry.id]
+                local isSelected=false
 
-                local row=button(list,
-                    (selected and "✓ " or "○ ")..entry.name.."  x"..entry.count,
-                    UDim2.new(),UDim2.new(1,-3,0,29),
-                    selected and Color3.fromRGB(75,48,30) or CARD,nil,9)
+                if mode=="Single" then
+                    isSelected=selectedOne==entry.id
+                else
+                    isSelected=selectedMulti[entry.id]==true
+                end
 
-                row.TextXAlignment=Enum.TextXAlignment.Left
-                row.ZIndex=32
+                local row=new("TextButton",{
+                    Size=UDim2.new(1,-3,0,31),
+                    BackgroundColor3=isSelected
+                        and Color3.fromRGB(78,52,29)
+                        or CARD,
+                    Text=(isSelected and "✓  " or "○  ")
+                        ..entry.name.."  x"..entry.count,
+                    TextColor3=WHITE,
+                    Font=Enum.Font.Gotham,
+                    TextSize=10,
+                    TextXAlignment=Enum.TextXAlignment.Left,
+                    BorderSizePixel=0,
+                    AutoButtonColor=true,
+                    Active=true,
+                    Selectable=true,
+                    ZIndex=52
+                },list)
+
+                corner(row,6)
 
                 row.Activated:Connect(function()
                     if busy then return end
@@ -1369,38 +1413,56 @@ local function showSellPanel(parent)
                         selectedOne=entry.id
                         quantity=1
                         quantityBox.Text="1"
-                        menu.Visible=false
+
                         dropdown=false
+                        menu.Visible=false
                     else
-                        selectedMulti[entry.id]=not selectedMulti[entry.id] or nil
-                        refreshList()
+                        if selectedMulti[entry.id] then
+                            selectedMulti[entry.id]=nil
+                        else
+                            selectedMulti[entry.id]=true
+                        end
                     end
 
                     updateInfo()
+                    refreshList()
                 end)
             end
         end
 
         if found==0 then
             local empty=label(list,"No pets found",
-                UDim2.new(),UDim2.new(1,0,0,25),MUTED,10,false)
-            empty.ZIndex=32
+                UDim2.new(),UDim2.new(1,0,0,27),MUTED,10,false)
+            empty.ZIndex=52
         end
     end
 
+    -- QUANTITY
     local function setQuantity(value)
         local count=selectedOne and getCount(selectedOne) or 1
-        quantity=math.clamp(math.floor(tonumber(value) or 1),1,math.max(1,count))
+
+        quantity=math.clamp(
+            math.floor(tonumber(value) or 1),
+            1,
+            math.max(1,count)
+        )
+
         quantityBox.Text=tostring(quantity)
     end
 
+    -- SELL REQUEST - ORIGINAL REMOTE PROTOCOL
     local function sendSell(id,amount)
-        if not SellRemote then return false,0 end
+        if not SellRemote then
+            return false,0
+        end
 
         local before=getCount(id)
-        if before<=0 then return false,0 end
 
-        amount=math.min(amount,before)
+        if before<=0 then
+            return false,0
+        end
+
+        amount=math.min(math.floor(amount),before)
 
         local ok=pcall(function()
             SellRemote:FireServer("sell",id,amount)
@@ -1410,13 +1472,21 @@ local function showSellPanel(parent)
             end
         end)
 
-        if not ok then return false,0 end
+        if not ok then
+            return false,0
+        end
 
         local deadline=os.clock()+5
+
         repeat
             task.wait(.1)
-            local sold=math.max(0,before-getCount(id))
-            if sold>0 then return true,sold end
+
+            local after=getCount(id)
+            local sold=math.max(0,before-after)
+
+            if sold>0 then
+                return true,sold
+            end
         until os.clock()>=deadline
 
         return false,0
@@ -1424,48 +1494,47 @@ local function showSellPanel(parent)
 
     local function setBusy(value)
         busy=value
+
         sellOne.Active=not value
         sellSelected.Active=not value
+
         sellOne.Text=value and "SELLING..." or "SELL ONE"
         sellSelected.Text=value and "SELLING..." or "SELL SELECTED"
     end
 
-    head.Activated:Connect(function()
-        expanded=not expanded
-        tween(panel,TweenInfo.new(.2),{
-            Size=UDim2.new(1,-4,0,expanded and 338 or 43)
-        })
-        arrow.Text=expanded and "▲" or "▼"
-        if not expanded then
-            menu.Visible=false
-            dropdown=false
+    -- OPEN / CLOSE DROPDOWN
+    choose.Activated:Connect(function()
+        dropdown=not dropdown
+        menu.Visible=dropdown
+
+        if dropdown then
+            search.Text=""
+            refreshList()
         end
     end)
 
+    search:GetPropertyChangedSignal("Text"):Connect(function()
+        refreshList()
+    end)
+
+    -- SINGLE / MULTI
     single.Activated:Connect(function()
         mode="Single"
-        menu.Visible=false
         dropdown=false
+        menu.Visible=false
         updateMode()
         refreshList()
     end)
 
     multi.Activated:Connect(function()
         mode="Multi"
-        menu.Visible=false
         dropdown=false
+        menu.Visible=false
         updateMode()
         refreshList()
     end)
 
-    choose.Activated:Connect(function()
-        dropdown=not dropdown
-        menu.Visible=dropdown
-        if dropdown then refreshList() end
-    end)
-
-    search:GetPropertyChangedSignal("Text"):Connect(refreshList)
-
+    -- QUANTITY BUTTONS
     minus.Activated:Connect(function()
         setQuantity(quantity-1)
     end)
@@ -1475,40 +1544,52 @@ local function showSellPanel(parent)
     end)
 
     max.Activated:Connect(function()
-        if selectedOne then setQuantity(getCount(selectedOne)) end
+        if selectedOne then
+            setQuantity(getCount(selectedOne))
+        end
     end)
 
     quantityBox.FocusLost:Connect(function()
         setQuantity(quantityBox.Text)
     end)
 
+    -- SELECT ALL / DESELECT ALL
     selectAll.Activated:Connect(function()
+        if busy then return end
+
         local entries=getInventoryPets()
-        local all=true
+        local allSelected=#entries>0
 
         for _,entry in ipairs(entries) do
             if not selectedMulti[entry.id] then
-                all=false
+                allSelected=false
                 break
             end
         end
 
-        if all then
+        if allSelected then
             table.clear(selectedMulti)
             selectAll.Text="☑ SELECT ALL"
         else
+            table.clear(selectedMulti)
+
             for _,entry in ipairs(entries) do
-                selectedMulti[entry.id]=true
+                if entry.count>0 then
+                    selectedMulti[entry.id]=true
+                end
             end
-            selectAll.Text="☑ DESELECT ALL"
+
+            selectAll.Text="☐ DESELECT ALL"
         end
 
-        refreshList()
         updateInfo()
+        refreshList()
     end)
 
+    -- SELL ONE
     sellOne.Activated:Connect(function()
         if busy then return end
+
         if not selectedOne then
             info.Text="Choose a pet first"
             return
@@ -1516,6 +1597,7 @@ local function showSellPanel(parent)
 
         local id=selectedOne
         local amount=math.min(quantity,getCount(id))
+
         if amount<=0 then
             info.Text="Pet unavailable"
             return
@@ -1525,19 +1607,27 @@ local function showSellPanel(parent)
 
         task.spawn(function()
             local ok,sold=sendSell(id,amount)
-            info.Text=ok and ("Sold "..sold.." "..getPetName(id))
-                or "Sell not confirmed"
-            task.wait(.2)
+
+            if ok then
+                info.Text="Sold "..sold.." "..getPetName(id)
+            else
+                info.Text="Sell not confirmed"
+            end
+
+            task.wait(.3)
+
             setBusy(false)
             updateInfo()
             refreshList()
         end)
     end)
 
+    -- SELL SELECTED
     sellSelected.Activated:Connect(function()
         if busy then return end
 
         local batch={}
+
         for id,selected in pairs(selectedMulti) do
             if selected and getCount(id)>0 then
                 table.insert(batch,id)
@@ -1549,26 +1639,53 @@ local function showSellPanel(parent)
             return
         end
 
+        table.sort(batch)
+
         setBusy(true)
 
         task.spawn(function()
-            local total,failed=0,0
+            local totalSold=0
+            local failed=0
 
             for _,id in ipairs(batch) do
                 local count=getCount(id)
+
                 if count>0 then
                     local ok,sold=sendSell(id,count)
-                    if ok then total+=sold else failed+=1 end
+
+                    if ok then
+                        totalSold+=sold
+                    else
+                        failed+=1
+                    end
+
+                    task.wait(.15)
                 end
             end
 
             table.clear(selectedMulti)
-            info.Text="Sold "..total.." pets • Failed: "..failed
-            task.wait(.2)
+            selectAll.Text="☑ SELECT ALL"
+
+            info.Text="Sold "..totalSold.." pets • Failed: "..failed
+
             setBusy(false)
             refreshList()
             updateInfo()
         end)
+    end)
+
+    -- PANEL OPEN / CLOSE
+    head.Activated:Connect(function()
+        expanded=not expanded
+
+        dropdown=false
+        menu.Visible=false
+
+        tween(panel,TweenInfo.new(.2),{
+            Size=UDim2.new(1,-4,0,expanded and 343 or 43)
+        })
+
+        arrow.Text=expanded and "▲" or "▼"
     end)
 
     updateMode()
