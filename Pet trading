@@ -798,7 +798,7 @@ local function showMain()
         end)
 
     ----------------------------------------------------------------
-    -- AUTO DROP - SET ID
+    -- AUTO DROP - CONTINUOUS TEST VERSION
     ----------------------------------------------------------------
 
     local DropPanel = new("Frame",{
@@ -829,6 +829,7 @@ local function showMain()
     },DropPanel)
 
     local dropExpanded = false
+    local dropSentCount = 0
 
     local SavedIdLabel = makeLabel(DropBody,
         "SAVED ID: NONE",
@@ -847,7 +848,7 @@ local function showMain()
         UDim2.new(0,2,0,66),UDim2.new(1,-4,0,18),MUTED,10,true)
 
     local DropProgress = makeLabel(DropBody,
-        "0 / 0",
+        "DROP SENT: 0",
         UDim2.new(0,2,0,86),UDim2.new(1,-4,0,18),WHITE,10,true)
 
     local DropSet = makeButton(DropBody,
@@ -892,67 +893,56 @@ local function showMain()
             DropCountLabel.Text = "IN INVENTORY: 0"
         end
 
-        DropProgress.Text = getDropProgress().." / "..dropTarget
+        DropProgress.Text = "DROP SENT: "..dropSentCount
     end
 
-    local function waitForHeldPet(id,timeout)
-        local deadline = os.clock()+(timeout or 3)
+    local function isDropActive(session)
+        return dropRunning
+            and dropSession == session
+            and DropPanel.Parent ~= nil
+    end
+
+    -- Chỉ chờ Character nhận Tool, không chờ Inventory.
+    local function waitForHeldPet(id,session,timeout)
+        local deadline = os.clock() + timeout
 
         repeat
-            if not dropRunning then return false end
-            if getHeldPet() == tostring(id) then return true end
-            task.wait(.05)
-        until os.clock() >= deadline
-
-        return getHeldPet() == tostring(id)
-    end
-
-    local function waitForHeldPetRemoval(timeout)
-        local deadline = os.clock()+(timeout or 3)
-
-        repeat
-            if not dropRunning then return false end
-            if not getHeldPet() then return true end
-            task.wait(.05)
-        until os.clock() >= deadline
-
-        return not getHeldPet()
-    end
-
-    local function waitForInventoryDecrease(id,before,timeout)
-        local deadline = os.clock()+(timeout or 6)
-
-        repeat
-            if not dropRunning then return false end
-            if getCount(id) < before then return true end
-            task.wait(.05)
-        until os.clock() >= deadline
-
-        return getCount(id) < before
-    end
-
-    local function takePetWithRetry(id)
-        for attempt = 1,3 do
-            if not dropRunning then return false end
-
-            if getHeldPet() == tostring(id) then return true end
-
-            setDropStatus("TAKING PET "..attempt.."/3",ORANGE)
-
-            local ok,err = pcall(function()
-                AutoDropRemote:FireServer("TakeTool",tonumber(id))
-            end)
-
-            if not ok then
-                warn("[Pet Hub] TakeTool error:",err)
+            if not isDropActive(session) then
+                return false
             end
 
-            if waitForHeldPet(id,2.5) then return true end
+            if getHeldPet() == tostring(id) then
+                return true
+            end
 
-            if attempt < 3 then task.wait(.15) end
+            task.wait(0.02)
+        until os.clock() >= deadline
+
+        return isDropActive(session)
+            and getHeldPet() == tostring(id)
+    end
+
+    -- Không gửi Drop lần nữa khi Tool cũ vẫn còn trên tay.
+    local function waitForPetRelease(id,session)
+        while isDropActive(session) do
+            local held = getHeldPet()
+
+            if held ~= tostring(id) then
+                return true
+            end
+
+            setDropStatus("WAITING FOR RELEASE",ORANGE)
+            task.wait(0.03)
         end
 
         return false
+    end
+
+    local function resetDropButton()
+        if DropStart and DropStart.Parent then
+            DropStart.Text = "▶ START"
+            DropStart.BackgroundColor3 = GREEN
+        end
     end
 
     DropHeader.Activated:Connect(function()
@@ -965,6 +955,7 @@ local function showMain()
         DropArrow.Text = dropExpanded and "▲" or "▼"
     end)
 
+    -- SET ID: không kiểm tra số lượng Inventory.
     DropSet.Activated:Connect(function()
         if dropRunning then
             setDropStatus("STOP BEFORE CHANGING ID",RED)
@@ -979,21 +970,18 @@ local function showMain()
         end
 
         local numericId = tonumber(heldId)
+
         if not numericId then
             setDropStatus("INVALID PET ID",RED)
             return
         end
 
-        local count = getCount(numericId)
-        if count <= 0 then
-            setDropStatus("PET NOT IN INVENTORY",RED)
-            return
-        end
-
         selectedPetId = tostring(numericId)
         selectedPetName = getPetName(numericId)
+
         dropInitialCount = 0
         dropTarget = 0
+        dropSentCount = 0
 
         updateDropDisplay()
         setDropStatus("ID SAVED",GREEN)
@@ -1001,8 +989,12 @@ local function showMain()
 
     DropStop.Activated:Connect(function()
         if dropRunning then
+            dropSession += 1
             dropRunning = false
-            setDropStatus("STOPPING...",RED)
+
+            resetDropButton()
+            setDropStatus("STOPPED",RED)
+            updateDropDisplay()
         else
             setDropStatus("IDLE",MUTED)
         end
@@ -1011,8 +1003,8 @@ local function showMain()
     DropStart.Activated:Connect(function()
         if dropRunning then return end
 
-        if not AutoDropRemote or not Inventory then
-            setDropStatus("INVENTORY / REMOTE NOT FOUND",RED)
+        if not AutoDropRemote then
+            setDropStatus("DROP REMOTE NOT FOUND",RED)
             return
         end
 
@@ -1021,126 +1013,138 @@ local function showMain()
             return
         end
 
-        local initial = getCount(selectedPetId)
-        if initial <= 0 then
-            setDropStatus("NO PET LEFT",RED)
-            updateDropDisplay()
-            return
-        end
-
         local held = getHeldPet()
+
         if held and held ~= selectedPetId then
             setDropStatus("PUT AWAY THE OTHER PET",RED)
             return
         end
 
-        dropInitialCount = initial
-        dropTarget = initial
+        dropInitialCount = getCount(selectedPetId)
+        dropTarget = 0
+        dropSentCount = 0
+
+        dropSession += 1
+        local thisSession = dropSession
+
         dropRunning = true
 
         DropStart.Text = "RUNNING..."
         DropStart.BackgroundColor3 = Color3.fromRGB(35,125,70)
-        setDropStatus("RUNNING",GREEN)
+
+        setDropStatus("RUNNING CONTINUOUSLY",GREEN)
         updateDropDisplay()
 
         task.spawn(function()
-            local failedMessage = nil
-
-            while dropRunning do
-                local progress = getDropProgress()
-                updateDropDisplay()
-
-                if progress >= dropTarget then
-                    break
-                end
-
-                local remaining = getCount(selectedPetId)
-                if remaining <= 0 then break end
-
+            while isDropActive(thisSession) do
                 local currentHeld = getHeldPet()
 
+                -- Nếu đang cầm pet khác, chờ người chơi cất nó.
                 if currentHeld and currentHeld ~= selectedPetId then
-                    failedMessage = "OTHER PET EQUIPPED"
-                    break
+                    setDropStatus("REMOVE OTHER PET",RED)
+                    task.wait(0.1)
+                    continue
                 end
 
+                -- Chưa cầm pet cần thả: yêu cầu server lấy theo ID.
                 if not currentHeld then
-                    local taken = takePetWithRetry(selectedPetId)
-
-                    if not taken then
-                        if dropRunning then
-                            failedMessage = "TAKE PET FAILED"
-                        end
-                        break
-                    end
-                end
-
-                if not dropRunning then break end
-
-                if getHeldPet() == selectedPetId then
-                    local before = getCount(selectedPetId)
-
-                    if before <= 0 then break end
-
-                    setDropStatus("DROPPING "..(progress+1).."/"..dropTarget,ORANGE)
+                    setDropStatus("TRYING TO TAKE PET",ORANGE)
 
                     local ok,err = pcall(function()
-                        AutoDropRemote:FireServer("Drop")
+                        AutoDropRemote:FireServer(
+                            "TakeTool",
+                            tonumber(selectedPetId)
+                        )
                     end)
 
                     if not ok then
-                        failedMessage = "DROP ERROR: "..tostring(err)
+                        warn("[Pet Hub] TakeTool error:",err)
+                    end
+
+                    local taken = waitForHeldPet(
+                        selectedPetId,
+                        thisSession,
+                        0.25
+                    )
+
+                    if not isDropActive(thisSession) then
                         break
                     end
 
-                    local changed = waitForInventoryDecrease(
-                        selectedPetId,before,6)
-
-                    if not changed then
-                        if dropRunning then
-                            failedMessage = "SERVER DID NOT CONFIRM DROP"
-                        end
-                        break
-                    end
-
-                    if not waitForHeldPetRemoval(3) then
-                        if dropRunning then
-                            failedMessage = "PET STILL EQUIPPED"
-                        end
-                        break
+                    if not taken then
+                        setDropStatus("WAITING / RETRYING",ORANGE)
+                        task.wait(0.2)
+                        continue
                     end
                 end
+
+                if not isDropActive(thisSession) then
+                    break
+                end
+
+                -- Kiểm tra lại ID ngay trước khi Drop.
+                if getHeldPet() ~= selectedPetId then
+                    task.wait(0.03)
+                    continue
+                end
+
+                setDropStatus("DROPPING",ORANGE)
+
+                local ok,err = pcall(function()
+                    AutoDropRemote:FireServer("Drop")
+                end)
+
+                if not ok then
+                    warn("[Pet Hub] Drop error:",err)
+                    setDropStatus("DROP ERROR - RETRYING",RED)
+                    task.wait(0.2)
+                    continue
+                end
+
+                dropSentCount += 1
+                updateDropDisplay()
+
+                -- Chờ Tool rời tay, KHÔNG chờ Inventory giảm.
+                local released = waitForPetRelease(
+                    selectedPetId,
+                    thisSession
+                )
+
+                if not released then
+                    break
+                end
+
+                -- Nhịp nghỉ ngắn trước lần lấy tiếp theo.
+                task.wait(0.03)
             end
 
-            local completed = getDropProgress() >= dropTarget
+            -- Chỉ session hiện tại được cập nhật UI.
+            if dropSession ~= thisSession then
+                return
+            end
+
             dropRunning = false
+            resetDropButton()
 
-            DropStart.Text = "▶ START"
-            DropStart.BackgroundColor3 = GREEN
-
-            if completed then
-                setDropStatus("COMPLETED",GREEN)
-            elseif failedMessage then
-                setDropStatus(failedMessage,RED)
-            else
+            if DropPanel.Parent then
                 setDropStatus("STOPPED",MUTED)
+                updateDropDisplay()
             end
-
-            updateDropDisplay()
         end)
     end)
 
     DropPanel.Destroying:Connect(function()
+        dropSession += 1
         dropRunning = false
     end)
 
     task.spawn(function()
         while DropPanel.Parent do
             updateDropDisplay()
-            task.wait(.25)
+            task.wait(0.25)
         end
     end)
-
+                              
     ----------------------------------------------------------------
     -- AUTO SELL
     ----------------------------------------------------------------
