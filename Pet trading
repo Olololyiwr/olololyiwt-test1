@@ -764,572 +764,7 @@ local function showMain()
     )
 
     ----------------------------------------------------------------
-    -- AUTO DROP
-    ----------------------------------------------------------------
-
-    local DropPanel = new("Frame",{
-        Size=UDim2.new(1,-4,0,43),
-        BackgroundColor3=CARD,
-        BorderSizePixel=0,
-        ClipsDescendants=true
-    },scroll)
-
-    corner(DropPanel,11)
-    stroke(DropPanel,ORANGE,1,.55)
-
-    local DropHeader = makeButton(
-        DropPanel,
-        "⚡ AUTO DROP",
-        UDim2.new(0,8,0,5),
-        UDim2.new(1,-16,0,32),
-        PANEL,nil,12
-    )
-    DropHeader.TextXAlignment = Enum.TextXAlignment.Left
-    DropHeader.TextColor3 = ORANGE
-
-    local DropArrow = makeLabel(
-        DropHeader,"▼",
-        UDim2.new(1,-30,0,0),
-        UDim2.fromOffset(22,32),
-        ORANGE,12,true
-    )
-    DropArrow.TextXAlignment = Enum.TextXAlignment.Center
-
-    local DropBody = new("Frame",{
-        Position=UDim2.new(0,8,0,43),
-        Size=UDim2.new(1,-16,0,202),
-        BackgroundTransparency=1
-    },DropPanel)
-
-    local dropExpanded = false
-    local dropDropdownOpen = false
-    local dropQuantity = 1
-
-    local DropPetButton = makeButton(
-        DropBody,
-        "Choose pet  ▼",
-        UDim2.new(0,0,0,0),
-        UDim2.new(1,0,0,34),
-        PANEL,nil,11
-    )
-    DropPetButton.TextXAlignment = Enum.TextXAlignment.Left
-
-    local DropCountLabel = makeLabel(
-        DropBody,
-        "IN INVENTORY: 0",
-        UDim2.new(0,2,0,36),
-        UDim2.new(1,-4,0,20),
-        ORANGE,11,true
-    )
-
-    local DropMenu = new("Frame",{
-        Position=UDim2.new(0,0,0,72),
-        Size=UDim2.new(1,0,0,112),
-        BackgroundColor3=PANEL,
-        BorderSizePixel=0,
-        Visible=false,
-        ZIndex=20
-    },DropBody)
-
-    corner(DropMenu,8)
-    stroke(DropMenu,ORANGE,1,.35)
-
-    local DropSearch = new("TextBox",{
-        Position=UDim2.new(0,5,0,5),
-        Size=UDim2.new(1,-10,0,27),
-        BackgroundColor3=CARD,
-        PlaceholderText="Search inventory...",
-        PlaceholderColor3=MUTED,
-        Text="",
-        TextColor3=WHITE,
-        Font=Enum.Font.Gotham,
-        TextSize=10,
-        ClearTextOnFocus=false,
-        BorderSizePixel=0,
-        ZIndex=21
-    },DropMenu)
-    corner(DropSearch,6)
-
-    local DropPetList = new("ScrollingFrame",{
-        Position=UDim2.new(0,5,0,36),
-        Size=UDim2.new(1,-10,1,-41),
-        BackgroundTransparency=1,
-        BorderSizePixel=0,
-        ScrollBarThickness=3,
-        ScrollBarImageColor3=ORANGE,
-        CanvasSize=UDim2.new(),
-        AutomaticCanvasSize=Enum.AutomaticSize.Y,
-        ZIndex=21
-    },DropMenu)
-
-    new("UIListLayout",{
-        Padding=UDim.new(0,3),
-        SortOrder=Enum.SortOrder.LayoutOrder
-    },DropPetList)
-
-    makeLabel(
-        DropBody,
-        "QUANTITY TO DROP",
-        UDim2.new(0,2,0,74),
-        UDim2.new(1,-4,0,17),
-        MUTED,9,true
-    )
-
-    local DropMinus = makeButton(
-        DropBody,"−",
-        UDim2.new(0,0,0,94),
-        UDim2.fromOffset(42,34),
-        PANEL,nil,18
-    )
-
-    local DropQuantityBox = new("TextBox",{
-        Position=UDim2.new(0,47,0,94),
-        Size=UDim2.new(1,-140,0,34),
-        BackgroundColor3=PANEL,
-        Text="1",
-        TextColor3=WHITE,
-        PlaceholderText="Amount",
-        Font=Enum.Font.GothamBold,
-        TextSize=13,
-        ClearTextOnFocus=false,
-        BorderSizePixel=0
-    },DropBody)
-    corner(DropQuantityBox,7)
-
-    local DropPlus = makeButton(
-        DropBody,"+",
-        UDim2.new(1,-88,0,94),
-        UDim2.fromOffset(42,34),
-        PANEL,nil,18
-    )
-
-    local DropMax = makeButton(
-        DropBody,"MAX",
-        UDim2.new(1,-42,0,94),
-        UDim2.fromOffset(42,34),
-        PANEL,nil,9
-    )
-
-    local DropStatus = makeLabel(
-        DropBody,
-        "Choose a pet to begin",
-        UDim2.new(0,2,0,132),
-        UDim2.new(1,-4,0,18),
-        MUTED,9,false
-    )
-
-    local DropProgress = makeLabel(
-        DropBody,
-        "0 / 0",
-        UDim2.new(0,2,0,150),
-        UDim2.new(1,-4,0,17),
-        WHITE,10,true
-    )
-
-    local DropStart = makeButton(
-        DropBody,"ULTRA DROP",
-        UDim2.new(0,0,0,173),
-        UDim2.new(.62,-4,0,29),
-        ORANGE,nil,10
-    )
-
-    local DropStop = makeButton(
-        DropBody,"STOP",
-        UDim2.new(.62,4,0,173),
-        UDim2.new(.38,-4,0,29),
-        RED,nil,10
-    )
-
-    local function setDropStatus(message)
-        if DropStatus and DropStatus.Parent then
-            DropStatus.Text = tostring(message)
-        end
-    end
-
-    -- Không ghi đè nội dung khi người dùng đang nhập số lượng.
-    local function updateDropCount()
-        local count = selectedPetId and getCount(selectedPetId) or 0
-        DropCountLabel.Text = "IN INVENTORY: "..count
-
-        local maxAmount = math.max(1,count)
-        dropQuantity = math.clamp(dropQuantity,1,maxAmount)
-
-        if not DropQuantityBox:IsFocused() then
-            DropQuantityBox.Text = tostring(dropQuantity)
-        end
-    end
-
-    local function setDropQuantity(value)
-        local count = selectedPetId and getCount(selectedPetId) or 0
-        local maxAmount = math.max(1,count)
-
-        dropQuantity = math.clamp(math.floor(tonumber(value) or 1),1,maxAmount)
-        DropQuantityBox.Text = tostring(dropQuantity)
-    end
-
-    local function selectDropPet(id,name)
-        if dropRunning then return end
-
-        selectedPetId = tostring(id)
-        selectedPetName = name or getPetName(id)
-        dropQuantity = 1
-
-        DropPetButton.Text = selectedPetName.."  ▼"
-        updateDropCount()
-        setDropStatus("Ready")
-        DropMenu.Visible = false
-        dropDropdownOpen = false
-    end
-
-    local function refreshDropPetList()
-        for _,child in ipairs(DropPetList:GetChildren()) do
-            if child:IsA("GuiObject") then
-                child:Destroy()
-            end
-        end
-
-        local query = string.lower(DropSearch.Text or "")
-        local entries = getInventoryPetItems()
-        local found = 0
-
-        for _,entry in ipairs(entries) do
-            if query == ""
-                or entry.name:lower():find(query,1,true)
-                or tostring(entry.id):find(query,1,true) then
-
-                found += 1
-
-                local row = makeButton(
-                    DropPetList,
-                    entry.name.."   x"..entry.count,
-                    UDim2.new(),
-                    UDim2.new(1,-3,0,29),
-                    selectedPetId == tostring(entry.id)
-                        and Color3.fromRGB(75,48,30) or CARD,
-                    function()
-                        selectDropPet(entry.id,entry.name)
-                    end,
-                    10
-                )
-                row.TextXAlignment = Enum.TextXAlignment.Left
-                row.ZIndex = 22
-            end
-        end
-
-        if found == 0 then
-            local empty = makeLabel(
-                DropPetList,
-                "No pets found",
-                UDim2.new(),
-                UDim2.new(1,0,0,28),
-                MUTED,10,false
-            )
-            empty.ZIndex = 22
-        end
-    end
-
-    DropHeader.Activated:Connect(function()
-        dropExpanded = not dropExpanded
-
-        tween(DropPanel,TweenInfo.new(.2),{
-            Size=UDim2.new(1,-4,0,dropExpanded and 252 or 43)
-        })
-
-        DropArrow.Text = dropExpanded and "▲" or "▼"
-
-        if not dropExpanded then
-            DropMenu.Visible = false
-            dropDropdownOpen = false
-        end
-    end)
-
-    DropPetButton.Activated:Connect(function()
-        if dropRunning then return end
-
-        dropDropdownOpen = not dropDropdownOpen
-        DropMenu.Visible = dropDropdownOpen
-
-        if dropDropdownOpen then
-            refreshDropPetList()
-        end
-    end)
-
-    DropSearch:GetPropertyChangedSignal("Text"):Connect(refreshDropPetList)
-
-    DropMinus.Activated:Connect(function()
-        setDropQuantity(dropQuantity-1)
-    end)
-
-    DropPlus.Activated:Connect(function()
-        setDropQuantity(dropQuantity+1)
-    end)
-
-    DropMax.Activated:Connect(function()
-        if selectedPetId then
-            setDropQuantity(getCount(selectedPetId))
-        end
-    end)
-
-    DropQuantityBox.FocusLost:Connect(function()
-        setDropQuantity(DropQuantityBox.Text)
-    end)
-
-    DropStop.Activated:Connect(function()
-        dropRunning = false
-        setDropStatus("Stopping...")
-    end)
-
-    -- Chờ pet được trang bị.
-    local function waitForHeldPet(id,timeout)
-        local deadline = os.clock()+(timeout or 3)
-
-        repeat
-            if not dropRunning then return false end
-
-            if getHeldPet() == tostring(id) then
-                return true
-            end
-
-            task.wait(.08)
-        until os.clock() >= deadline
-
-        return getHeldPet() == tostring(id)
-    end
-
-    -- Chờ pet biến mất khỏi tay sau khi thả.
-    local function waitForHeldPetRemoval(timeout)
-        local deadline = os.clock()+(timeout or 3)
-
-        repeat
-            if not dropRunning then return false end
-
-            if not getHeldPet() then
-                return true
-            end
-
-            task.wait(.08)
-        until os.clock() >= deadline
-
-        return not getHeldPet()
-    end
-
-    -- Chờ server xác nhận inventory đã giảm.
-    local function waitForInventoryDecrease(id,before,timeout)
-        local deadline = os.clock()+(timeout or 7)
-
-        repeat
-            if not dropRunning then return false end
-
-            local current = getCount(id)
-            if current < before then
-                return true
-            end
-
-            task.wait(.08)
-        until os.clock() >= deadline
-
-        return getCount(id) < before
-    end
-
-    -- Thử lấy pet lại nếu server chưa trang bị ở lần đầu.
-    local function takePetWithRetry(id)
-        for attempt = 1,3 do
-            if not dropRunning then return false end
-
-            if getHeldPet() == tostring(id) then
-                return true
-            end
-
-            setDropStatus("Taking pet... ("..attempt.."/3)")
-
-            local ok,err = pcall(function()
-                AutoDropRemote:FireServer("TakeTool",tonumber(id))
-            end)
-
-            if not ok then
-                warn("[Pet Hub] TakeTool error:",err)
-            end
-
-            if waitForHeldPet(id,3) then
-                return true
-            end
-
-            if attempt < 3 then
-                task.wait(.35)
-            end
-        end
-
-        return false
-    end
-
-    DropStart.Activated:Connect(function()
-        if dropRunning then return end
-
-        if not AutoDropRemote or not Inventory then
-            setDropStatus("Inventory / Remote not found")
-            return
-        end
-
-        if not selectedPetId then
-            setDropStatus("Choose a pet first")
-            return
-        end
-
-        local amount = tonumber(DropQuantityBox.Text)
-
-        if not amount or amount < 1 or amount%1 ~= 0 then
-            setDropStatus("Invalid quantity")
-            return
-        end
-
-        local initial = getCount(selectedPetId)
-
-        if initial <= 0 then
-            setDropStatus("No pet in inventory")
-            updateDropCount()
-            return
-        end
-
-        if amount > initial then
-            setDropStatus("Quantity exceeds inventory")
-            updateDropCount()
-            return
-        end
-
-        dropInitialCount = initial
-        dropTarget = amount
-        dropRunning = true
-
-        DropStart.Text = "DROPPING..."
-        DropStart.BackgroundColor3 = Color3.fromRGB(190,105,35)
-        setDropStatus("ULTRA DROP running")
-        DropProgress.Text = "0 / "..dropTarget
-
-        task.spawn(function()
-            local lastShown = -1
-            local failedMessage = nil
-
-            while dropRunning do
-                local progress = getDropProgress()
-
-                if progress ~= lastShown then
-                    lastShown = progress
-                    DropProgress.Text = progress.." / "..dropTarget
-                end
-
-                if progress >= dropTarget then
-                    setDropStatus("Completed!")
-                    break
-                end
-
-                local remaining = getCount(selectedPetId)
-                if remaining <= 0 then
-                    setDropStatus("No more pets")
-                    break
-                end
-
-                local held = getHeldPet()
-
-                if held and held ~= selectedPetId then
-                    failedMessage = "Another pet is equipped"
-                    break
-                end
-
-                -- Nếu chưa cầm pet, thử lấy pet tối đa 3 lần.
-                if not held then
-                    local taken = takePetWithRetry(selectedPetId)
-
-                    if not taken then
-                        if dropRunning then
-                            failedMessage = "Take pet failed - retry later"
-                        end
-                        break
-                    end
-                end
-
-                if not dropRunning then break end
-
-                -- Chỉ gửi Drop khi đang cầm đúng pet.
-                if getHeldPet() == selectedPetId then
-                    local before = getCount(selectedPetId)
-
-                    if before <= 0 then
-                        setDropStatus("No more pets")
-                        break
-                    end
-
-                    setDropStatus("Dropping "..(progress+1).."/"..dropTarget)
-
-                    local dropOK,dropError = pcall(function()
-                        AutoDropRemote:FireServer("Drop")
-                    end)
-
-                    if not dropOK then
-                        failedMessage = "Drop error: "..tostring(dropError)
-                        break
-                    end
-
-                    -- Đợi inventory giảm trước khi làm lượt tiếp theo.
-                    local inventoryChanged = waitForInventoryDecrease(
-                        selectedPetId,
-                        before,
-                        7
-                    )
-
-                    if not inventoryChanged then
-                        if dropRunning then
-                            failedMessage = "Server did not confirm drop"
-                        end
-                        break
-                    end
-
-                    -- Đợi pet rời khỏi tay rồi mới lấy pet kế tiếp.
-                    if not waitForHeldPetRemoval(3) then
-                        if dropRunning then
-                            failedMessage = "Pet still equipped - waiting failed"
-                        end
-                        break
-                    end
-
-                    -- Nhường một nhịp ngắn để server/UI cập nhật ổn định.
-                    task.wait(.12)
-                else
-                    task.wait(.08)
-                end
-            end
-
-            local completed = getDropProgress() >= dropTarget
-
-            dropRunning = false
-
-            DropStart.Text = "ULTRA DROP"
-            DropStart.BackgroundColor3 = ORANGE
-
-            if completed then
-                setDropStatus("Completed!")
-            elseif failedMessage then
-                setDropStatus(failedMessage)
-            elseif DropStatus.Text == "ULTRA DROP running" then
-                setDropStatus("Stopped")
-            end
-
-            DropProgress.Text = getDropProgress().." / "..dropTarget
-            updateDropCount()
-        end)
-    end)
-
-    -- Update inventory count, không ghi đè TextBox khi đang nhập.
-    task.spawn(function()
-        while DropPanel.Parent do
-            if selectedPetId then
-                updateDropCount()
-            end
-            task.wait(.5)
-        end
-    end)
-
-    ----------------------------------------------------------------
-    -- AUTO SELL
+    -- AUTO SELL - GLOSSY MULTI SELECT + FLOATING SPARKLES
     ----------------------------------------------------------------
 
     local SellPanel = new("Frame",{
@@ -1340,11 +775,10 @@ local function showMain()
     },scroll)
 
     corner(SellPanel,11)
-    stroke(SellPanel,ORANGE,1,.55)
+    local SellBorder = stroke(SellPanel,ORANGE,1.5,.25)
 
     local SellHeader = makeButton(
-        SellPanel,
-        "💰 AUTO SELL",
+        SellPanel,"🐾 AUTO SELL",
         UDim2.new(0,8,0,5),
         UDim2.new(1,-16,0,32),
         PANEL,nil,12
@@ -1362,7 +796,7 @@ local function showMain()
 
     local SellBody = new("Frame",{
         Position=UDim2.new(0,8,0,43),
-        Size=UDim2.new(1,-16,0,310),
+        Size=UDim2.new(1,-16,0,340),
         BackgroundTransparency=1
     },SellPanel)
 
@@ -1374,22 +808,26 @@ local function showMain()
     local sellQuantity = 1
     local sellDropdownOpen = false
 
+    -- MODE BUTTONS
+
     local ModeSingle = makeButton(
-        SellBody,"SINGLE SELECT",
+        SellBody,"🐱 SINGLE",
         UDim2.new(0,0,0,0),
         UDim2.new(.5,-3,0,30),
-        ORANGE,nil,9
+        ORANGE,nil,10
     )
 
     local ModeMulti = makeButton(
-        SellBody,"MULTI SELECT",
+        SellBody,"🐶 MULTI",
         UDim2.new(.5,3,0,0),
         UDim2.new(.5,-3,0,30),
-        PANEL,nil,9
+        PANEL,nil,10
     )
 
+    -- SINGLE PET SELECT
+
     local SellPetButton = makeButton(
-        SellBody,"Choose pet  ▼",
+        SellBody,"🐾 Choose pet  ▼",
         UDim2.new(0,0,0,37),
         UDim2.new(1,0,0,34),
         PANEL,nil,10
@@ -1397,8 +835,7 @@ local function showMain()
     SellPetButton.TextXAlignment = Enum.TextXAlignment.Left
 
     local SellCountLabel = makeLabel(
-        SellBody,
-        "IN INVENTORY: 0",
+        SellBody,"IN INVENTORY: 0",
         UDim2.new(0,2,0,72),
         UDim2.new(1,-4,0,18),
         ORANGE,10,true
@@ -1449,9 +886,10 @@ local function showMain()
         SortOrder=Enum.SortOrder.LayoutOrder
     },SellPetList)
 
-    makeLabel(
-        SellBody,
-        "QUANTITY TO SELL",
+    -- SINGLE QUANTITY CONTROLS
+
+    local SellQuantityLabel = makeLabel(
+        SellBody,"QUANTITY TO SELL",
         UDim2.new(0,2,0,94),
         UDim2.new(1,-4,0,16),
         MUTED,9,true
@@ -1491,37 +929,182 @@ local function showMain()
         PANEL,nil,9
     )
 
+    -- MULTI CHOOSE PET PANEL
+
+    local MultiPanel = new("Frame",{
+        Position=UDim2.new(0,0,0,75),
+        Size=UDim2.new(1,0,0,145),
+        BackgroundColor3=PANEL,
+        BorderSizePixel=0,
+        Visible=false,
+        ClipsDescendants=true
+    },SellBody)
+
+    corner(MultiPanel,9)
+    stroke(MultiPanel,ORANGE,1,.35)
+
+    local MultiTitle = makeLabel(
+        MultiPanel,"🐾  CHOOSE PET",
+        UDim2.new(0,8,0,2),
+        UDim2.new(1,-16,0,19),
+        ORANGE,10,true
+    )
+
+    local MultiSearch = new("TextBox",{
+        Position=UDim2.new(0,6,0,22),
+        Size=UDim2.new(1,-12,0,25),
+        BackgroundColor3=CARD,
+        PlaceholderText="Search pets...",
+        PlaceholderColor3=MUTED,
+        Text="",
+        TextColor3=WHITE,
+        Font=Enum.Font.Gotham,
+        TextSize=10,
+        ClearTextOnFocus=false,
+        BorderSizePixel=0
+    },MultiPanel)
+    corner(MultiSearch,6)
+
+    local MultiList = new("ScrollingFrame",{
+        Position=UDim2.new(0,6,0,52),
+        Size=UDim2.new(1,-12,1,-58),
+        BackgroundTransparency=1,
+        BorderSizePixel=0,
+        ScrollBarThickness=3,
+        ScrollBarImageColor3=ORANGE,
+        CanvasSize=UDim2.new(),
+        AutomaticCanvasSize=Enum.AutomaticSize.Y
+    },MultiPanel)
+
+    new("UIListLayout",{
+        Padding=UDim.new(0,3),
+        SortOrder=Enum.SortOrder.LayoutOrder
+    },MultiList)
+
+    -- MULTI ACTIONS
+
     local SellSelectAll = makeButton(
-        SellBody,"☑  SELECT ALL",
-        UDim2.new(0,0,0,151),
-        UDim2.new(1,0,0,29),
+        SellBody,"🐾 SELECT ALL",
+        UDim2.new(0,0,0,225),
+        UDim2.new(1,0,0,27),
         PANEL,nil,9
     )
 
     local SellInfo = makeLabel(
-        SellBody,
-        "Select a pet to sell",
-        UDim2.new(0,2,0,183),
-        UDim2.new(1,-4,0,27),
+        SellBody,"Select a pet to sell",
+        UDim2.new(0,2,0,255),
+        UDim2.new(1,-4,0,25),
         MUTED,9,false
     )
 
     local SellOne = makeButton(
         SellBody,"SELL ONE",
-        UDim2.new(0,0,0,215),
+        UDim2.new(0,0,0,285),
         UDim2.new(1,0,0,34),
         ORANGE,nil,10
     )
 
     local SellSelected = makeButton(
-        SellBody,"SELL SELECTED",
-        UDim2.new(0,0,0,215),
+        SellBody,"🐾 SELL SELECTED",
+        UDim2.new(0,0,0,285),
         UDim2.new(1,0,0,34),
         GREEN,nil,10
     )
     SellSelected.Visible = false
 
-    -- Không ghi đè TextBox khi người dùng đang nhập.
+    -- FLOATING SPARKLES
+
+    local sparkleRunning = true
+
+    task.spawn(function()
+        local random = Random.new()
+
+        while sparkleRunning and SellPanel.Parent do
+            if sellExpanded then
+                local star = new("TextLabel",{
+                    AnchorPoint=Vector2.new(.5,.5),
+                    Position=UDim2.new(
+                        random:NextNumber(.08,.92),0,
+                        random:NextNumber(.12,.85),0
+                    ),
+                    Size=UDim2.fromOffset(
+                        random:NextInteger(7,13),
+                        random:NextInteger(7,13)
+                    ),
+                    BackgroundTransparency=1,
+                    Text="✦",
+                    TextColor3=random:NextNumber() > .5
+                        and Color3.fromRGB(255,190,80)
+                        or Color3.fromRGB(255,245,220),
+                    TextTransparency=.15,
+                    Font=Enum.Font.GothamBold,
+                    TextSize=random:NextInteger(8,13),
+                    ZIndex=2
+                },SellPanel)
+
+                tween(star,TweenInfo.new(
+                    random:NextNumber(.7,1.3),
+                    Enum.EasingStyle.Sine,
+                    Enum.EasingDirection.Out
+                ),{
+                    Position=star.Position+UDim2.new(
+                        0,random:NextInteger(-8,8),
+                        0,random:NextInteger(-12,12)
+                    ),
+                    TextTransparency=1,
+                    Rotation=random:NextInteger(-45,45)
+                })
+
+                task.delay(1.4,function()
+                    if star and star.Parent then
+                        star:Destroy()
+                    end
+                end)
+            end
+
+            task.wait(.28)
+        end
+    end)
+
+    -- GLOSSY LIGHT SWEEP
+
+    local SellSweep = new("Frame",{
+        Position=UDim2.new(-.5,0,0,0),
+        Size=UDim2.new(.25,0,1,0),
+        BackgroundColor3=Color3.fromRGB(255,210,145),
+        BackgroundTransparency=.82,
+        BorderSizePixel=0,
+        ZIndex=3
+    },SellHeader)
+
+    local SellSweepGradient = new("UIGradient",{
+        Transparency=NumberSequence.new({
+            NumberSequenceKeypoint.new(0,1),
+            NumberSequenceKeypoint.new(.5,.15),
+            NumberSequenceKeypoint.new(1,1)
+        })
+    },SellSweep)
+
+    task.spawn(function()
+        while SellPanel.Parent do
+            tween(SellSweep,TweenInfo.new(
+                2.1,
+                Enum.EasingStyle.Linear
+            ),{
+                Position=UDim2.new(1.2,0,0,0)
+            })
+
+            task.wait(2.1)
+
+            if not SellPanel.Parent then break end
+
+            SellSweep.Position=UDim2.new(-.5,0,0,0)
+            task.wait(.15)
+        end
+    end)
+
+    -- HELPERS
+
     local function updateSellCount()
         local count = selectedOneId and getCount(selectedOneId) or 0
         SellCountLabel.Text = "IN INVENTORY: "..count
@@ -1539,10 +1122,30 @@ local function showMain()
 
     local function setSellQuantity(value)
         local count = selectedOneId and getCount(selectedOneId) or 0
-        local maximum = math.max(1,count)
-
-        sellQuantity = math.clamp(math.floor(tonumber(value) or 1),1,maximum)
+        sellQuantity = math.clamp(
+            math.floor(tonumber(value) or 1),
+            1,
+            math.max(1,count)
+        )
         SellQuantityBox.Text = tostring(sellQuantity)
+    end
+
+    local function getSelectedMultiTotals()
+        local total = 0
+        local types = 0
+
+        for id,isSelected in pairs(selectedPets) do
+            if isSelected then
+                local count = getCount(id)
+
+                if count > 0 then
+                    total += count
+                    types += 1
+                end
+            end
+        end
+
+        return types,total
     end
 
     local function updateSellMode()
@@ -1559,6 +1162,7 @@ local function showMain()
         SellPlus.Visible = single
         SellMax.Visible = single
 
+        MultiPanel.Visible = not single
         SellSelectAll.Visible = not single
         SellOne.Visible = single
         SellSelected.Visible = not single
@@ -1568,22 +1172,12 @@ local function showMain()
                 and ("Selected: "..getPetName(selectedOneId))
                 or "Choose one pet type"
         else
-            local total = 0
-            local types = 0
-
-            for id,isSelected in pairs(selectedPets) do
-                if isSelected then
-                    local count = getCount(id)
-                    if count > 0 then
-                        total += count
-                        types += 1
-                    end
-                end
-            end
-
+            local types,total = getSelectedMultiTotals()
             SellInfo.Text = "Selected: "..types.." types • "..total.." pets"
         end
     end
+
+    -- SINGLE LIST
 
     local function refreshSellPetList()
         for _,child in ipairs(SellPetList:GetChildren()) do
@@ -1603,99 +1197,133 @@ local function showMain()
 
                 found += 1
 
-                local isSelected = selectedPets[entry.id] == true
-                local isSingle = selectedOneId == entry.id
-
-                -- FIX: tính boolean riêng, tránh gán true vào Color3.
-                local rowSelected = (sellMode == "Single" and isSingle)
-                    or (sellMode == "Multi" and isSelected)
-
-                local row = new("Frame",{
-                    Size=UDim2.new(1,-3,0,32),
-                    BackgroundColor3=rowSelected
+                local row = makeButton(
+                    SellPetList,
+                    entry.name.."   x"..entry.count,
+                    UDim2.new(),
+                    UDim2.new(1,-3,0,29),
+                    selectedOneId == entry.id
                         and Color3.fromRGB(75,48,30) or CARD,
-                    BorderSizePixel=0,
-                    ZIndex=32
-                },SellPetList)
-                corner(row,6)
+                    function()
+                        if sellBusy then return end
 
-                local choose = new("TextButton",{
-                    Position=UDim2.new(0,4,0,2),
-                    Size=UDim2.new(1,-76,1,-4),
-                    BackgroundTransparency=1,
-                    Text=(sellMode == "Single" and (isSingle and "● " or "○ ") or "")
-                        ..entry.name,
-                    TextColor3=isSingle and ORANGE or WHITE,
-                    Font=Enum.Font.Gotham,
-                    TextSize=10,
-                    TextXAlignment=Enum.TextXAlignment.Left,
-                    BorderSizePixel=0,
-                    ZIndex=33
-                },row)
-
-                local action = new("TextButton",{
-                    Position=UDim2.new(1,-68,0,3),
-                    Size=UDim2.fromOffset(27,26),
-                    BackgroundColor3=isSelected and ORANGE or PANEL,
-                    Text=isSelected and "✓" or (sellMode == "Multi" and "+" or ""),
-                    TextColor3=WHITE,
-                    Font=Enum.Font.GothamBold,
-                    TextSize=12,
-                    BorderSizePixel=0,
-                    ZIndex=33
-                },row)
-                corner(action,5)
-
-                local countLabel = makeLabel(
-                    row,
-                    "x"..entry.count,
-                    UDim2.new(1,-39,0,0),
-                    UDim2.fromOffset(35,32),
-                    ORANGE,9,true
-                )
-                countLabel.TextXAlignment = Enum.TextXAlignment.Center
-                countLabel.ZIndex = 33
-
-                local function chooseEntry()
-                    if sellBusy then return end
-
-                    if sellMode == "Single" then
                         selectedOneId = entry.id
                         sellQuantity = 1
-                        SellPetButton.Text = entry.name.."  ▼"
+                        SellPetButton.Text = "🐾 "..entry.name.."  ▼"
                         SellMenu.Visible = false
                         sellDropdownOpen = false
+
                         updateSellCount()
                         updateSellMode()
-                    else
-                        selectedPets[entry.id] = not selectedPets[entry.id] or nil
                         refreshSellPetList()
-                        updateSellMode()
-                    end
-                end
-
-                choose.Activated:Connect(chooseEntry)
-                action.Activated:Connect(chooseEntry)
+                    end,
+                    10
+                )
+                row.TextXAlignment = Enum.TextXAlignment.Left
+                row.ZIndex = 32
             end
         end
 
         if found == 0 then
-            local empty = makeLabel(
-                SellPetList,
-                "No pets found",
+            makeLabel(
+                SellPetList,"No pets found",
                 UDim2.new(),
                 UDim2.new(1,0,0,28),
                 MUTED,10,false
             )
-            empty.ZIndex = 32
         end
     end
+
+    -- MULTI LIST WITH CHECKBOXES
+
+    local function refreshMultiList()
+        for _,child in ipairs(MultiList:GetChildren()) do
+            if child:IsA("GuiObject") then
+                child:Destroy()
+            end
+        end
+
+        local query = string.lower(MultiSearch.Text or "")
+        local entries = getInventoryPetItems()
+        local found = 0
+
+        for _,entry in ipairs(entries) do
+            if query == ""
+                or entry.name:lower():find(query,1,true)
+                or tostring(entry.id):find(query,1,true) then
+
+                found += 1
+
+                local id = entry.id
+                local checked = selectedPets[id] == true
+
+                local row = new("Frame",{
+                    Size=UDim2.new(1,-3,0,31),
+                    BackgroundColor3=checked
+                        and Color3.fromRGB(76,48,29) or CARD,
+                    BorderSizePixel=0
+                },MultiList)
+                corner(row,6)
+
+                local checkbox = makeButton(
+                    row,
+                    checked and "✓" or "",
+                    UDim2.new(0,4,0,4),
+                    UDim2.fromOffset(22,23),
+                    checked and ORANGE or PANEL,
+                    nil,12
+                )
+
+                local petButton = makeButton(
+                    row,
+                    entry.name,
+                    UDim2.new(0,31,0,0),
+                    UDim2.new(1,-100,1,0),
+                    row.BackgroundColor3,
+                    nil,10
+                )
+                petButton.TextXAlignment = Enum.TextXAlignment.Left
+
+                local countLabel = makeLabel(
+                    row,
+                    "x"..entry.count,
+                    UDim2.new(1,-63,0,0),
+                    UDim2.fromOffset(40,31),
+                    ORANGE,10,true
+                )
+                countLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+                local function toggle()
+                    if sellBusy then return end
+
+                    selectedPets[id] = not selectedPets[id] or nil
+
+                    refreshMultiList()
+                    updateSellMode()
+                end
+
+                checkbox.Activated:Connect(toggle)
+                petButton.Activated:Connect(toggle)
+            end
+        end
+
+        if found == 0 then
+            makeLabel(
+                MultiList,"No pets found",
+                UDim2.new(),
+                UDim2.new(1,0,0,28),
+                MUTED,10,false
+            )
+        end
+    end
+
+    -- PANEL EVENTS
 
     SellHeader.Activated:Connect(function()
         sellExpanded = not sellExpanded
 
-        tween(SellPanel,TweenInfo.new(.2),{
-            Size=UDim2.new(1,-4,0,sellExpanded and 358 or 43)
+        tween(SellPanel,TweenInfo.new(.22),{
+            Size=UDim2.new(1,-4,0,sellExpanded and 388 or 43)
         })
 
         SellArrow.Text = sellExpanded and "▲" or "▼"
@@ -1703,23 +1331,29 @@ local function showMain()
         if not sellExpanded then
             SellMenu.Visible = false
             sellDropdownOpen = false
+        else
+            refreshMultiList()
         end
     end)
 
     ModeSingle.Activated:Connect(function()
         if sellBusy then return end
+
         sellMode = "Single"
         SellMenu.Visible = false
         sellDropdownOpen = false
+
         updateSellMode()
     end)
 
     ModeMulti.Activated:Connect(function()
         if sellBusy then return end
+
         sellMode = "Multi"
         SellMenu.Visible = false
         sellDropdownOpen = false
-        refreshSellPetList()
+
+        refreshMultiList()
         updateSellMode()
     end)
 
@@ -1735,6 +1369,7 @@ local function showMain()
     end)
 
     SellSearch:GetPropertyChangedSignal("Text"):Connect(refreshSellPetList)
+    MultiSearch:GetPropertyChangedSignal("Text"):Connect(refreshMultiList)
 
     SellMinus.Activated:Connect(function()
         setSellQuantity(sellQuantity-1)
@@ -1755,6 +1390,8 @@ local function showMain()
     end)
 
     SellSelectAll.Activated:Connect(function()
+        if sellBusy then return end
+
         local entries = getInventoryPetItems()
         local allSelected = #entries > 0
 
@@ -1767,15 +1404,15 @@ local function showMain()
 
         if allSelected then
             table.clear(selectedPets)
-            SellSelectAll.Text = "☑  SELECT ALL"
+            SellSelectAll.Text = "🐾 SELECT ALL"
         else
             for _,entry in ipairs(entries) do
                 selectedPets[entry.id] = true
             end
-            SellSelectAll.Text = "☑  DESELECT ALL"
+            SellSelectAll.Text = "🐾 DESELECT ALL"
         end
 
-        refreshSellPetList()
+        refreshMultiList()
         updateSellMode()
     end)
 
@@ -1786,7 +1423,9 @@ local function showMain()
         SellSelected.AutoButtonColor = enabled
     end
 
-    -- Trả về số pet thực tế đã bán dựa trên mức giảm inventory.
+    -- SELL REQUEST
+    -- Giữ nguyên remote và tham số gốc của script.
+
     local function sendSellRequest(id,amount)
         if not SellRemote then
             return false,0,"Sell remote not found"
@@ -1827,6 +1466,8 @@ local function showMain()
 
         return false,0,"No inventory change detected"
     end
+
+    -- SINGLE SELL
 
     SellOne.Activated:Connect(function()
         if sellBusy then return end
@@ -1872,6 +1513,8 @@ local function showMain()
         end)
     end)
 
+    -- MULTI SELL - NO CONFIRMATION
+
     SellSelected.Activated:Connect(function()
         if sellBusy then return end
 
@@ -1912,7 +1555,10 @@ local function showMain()
             for _,pet in ipairs(batch) do
                 if not SellPanel.Parent then break end
 
-                local amount = math.min(getCount(pet.id),pet.amount)
+                local amount = math.min(
+                    getCount(pet.id),
+                    pet.amount
+                )
 
                 if amount > 0 then
                     local ok,sold = sendSellRequest(pet.id,amount)
@@ -1929,21 +1575,26 @@ local function showMain()
             table.clear(selectedPets)
 
             if failed > 0 then
-                SellInfo.Text = "Sold "..soldAmount.."; "..failed.." not confirmed"
+                SellInfo.Text = "Sold "..soldAmount..
+                    "; "..failed.." not confirmed"
             else
-                SellInfo.Text = "Sold "..soldAmount.." pets / "..soldTypes.." types"
+                SellInfo.Text = "Sold "..soldAmount..
+                    " pets / "..soldTypes.." types"
             end
 
             task.wait(.2)
 
             sellBusy = false
             setSellButtons(true)
-            SellSelected.Text = "SELL SELECTED"
+            SellSelected.Text = "🐾 SELL SELECTED"
 
+            refreshMultiList()
             refreshSellPetList()
             updateSellMode()
         end)
     end)
+
+    -- INVENTORY REFRESH
 
     task.spawn(function()
         while SellPanel.Parent do
@@ -1953,6 +1604,7 @@ local function showMain()
                 end
 
                 if sellMode == "Multi" then
+                    refreshMultiList()
                     updateSellMode()
                 end
             end
@@ -1961,6 +1613,14 @@ local function showMain()
         end
     end)
 
+    -- CLEANUP
+
+    SellPanel.Destroying:Connect(function()
+        sparkleRunning = false
+    end)
+
+    updateSellMode()
+  
     -- CREDITS BUTTON
 
     makeActionButton(
