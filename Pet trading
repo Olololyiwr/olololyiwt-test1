@@ -1,7 +1,7 @@
 --[[
-PET TRADING HUB - COMPACT V3 + EMOJI DECORATION
-GOLD + RAINBOW 145 PETS
-COLORED 38 PETS
+PET TRADING HUB - COMPACT V3 + RAINBOW & GOLD EFFECTS + EMOJI
+GOLD (🪙 Gold Gradient) + RAINBOW (🌈 Rainbow Gradient Animation)
+COLORED (🎨 Colored $R)
 QUANTITY SELECTOR
 AUTO DROP + AUTO SELL + ADIDAS ANIMATION
 
@@ -104,7 +104,7 @@ local function decoratePetName(name)
         "🕷","🌋","🐸","🦀","🦁","🦔","🦄","🦋",
         "👻","⭐","🦃","🐼","⚡","🎃","💀","👑",
         "🌹","⚙","📺","🎧","🪽","🍭","⚔","🧸",
-        "🫧","🌀","🪶","✨","🔄","🧽","🖥","❓"
+        "🫧","🌀","🪶","✨","🔄","🧽","🖥","❓","🌈","🪙"
     }
 
     for _,emoji in ipairs(existing) do
@@ -122,6 +122,22 @@ local function decoratePetName(name)
     end
 
     return "✨ "..raw
+end
+
+local function formatDisplayPetName(name, category)
+    local decorated = decoratePetName(name)
+    if category == "Rainbow" then
+        if not decorated:find("🌈", 1, true) then
+            decorated = "🌈 " .. decorated
+        end
+    elseif category == "Gold" then
+        if not decorated:find("🪙", 1, true) then
+            decorated = "🪙 " .. decorated
+        end
+    elseif category == "Colored" then
+        return decorated .. ' <font color="#2ECC71">$R</font>'
+    end
+    return decorated
 end
 
 --==================================================
@@ -155,12 +171,13 @@ local function tween(obj,info,props)
     return t
 end
 
-local function label(parent,text,pos,size,color,textSize,bold)
+local function label(parent,text,pos,size,color,textSize,bold,richText)
     return new("TextLabel",{
         Position=pos,
         Size=size,
         BackgroundTransparency=1,
         Text=text,
+        RichText=richText or false,
         TextColor3=color or WHITE,
         Font=bold and Enum.Font.GothamBold or Enum.Font.Gotham,
         TextSize=textSize or 11,
@@ -249,7 +266,7 @@ local function addNeon(frame,color)
     end)
 end
 
-local function applyTitleGradient(lbl,kind)
+local function applyAnimatedGradient(lbl,kind)
     local gradient = new("UIGradient",{
         Color=kind=="Gold" and GoldGradient or RainbowGradient,
         Offset=Vector2.new(-1,0)
@@ -415,9 +432,9 @@ local PetData = [[
 ]]
 
 for line in PetData:gmatch("[^\r\n]+") do
-    local id,name=line:match("^(%d+)|(.+)$")
-    if id and name then
-        table.insert(MainPetCatalog,{name,tonumber(id)})
+    local rawId,name=line:match("^(%d+)|(.+)$")
+    if rawId and name then
+        table.insert(MainPetCatalog,{name,tonumber(rawId)})
     end
 end
 
@@ -510,7 +527,6 @@ local ColoredPets = {
     {"Deer 🦌",40016},
     {"Raging Bull 🐃",40073},
     {"Cow 🐮",40055},
-    {"Gray Wolf 🐺",40019},
     {"Lion 🦁",40083},
     {"Steampunk Bull 🐃",40108},
     {"Steampunk Dog 🐶",40107},
@@ -518,7 +534,87 @@ local ColoredPets = {
     {"Baby Lightning 👻",40122},
     {"Green Bee 🐝",40024},
     {"Wyvern 🐲",40088},
-    {"Ugly Duck 🦢",40120}
+    {"Ugly Duck 🦢",40120},
+    -- Bổ sung đầy đủ các pet từ ảnh chụp shop:
+    {"Yellow Cat", 40057},
+    {"Kitten", 40002},
+    {"Kitty", 40049},
+    {"Doggy", 40081},
+    {"Brown Dog", 40050},
+    {"Steampunk Dragon", 40160},
+    {"Cloud Wyvern", 40161},
+    {"Fly Crab", 40084},
+    {"Crab", 40087},
+    {"Blob", 40112},
+    {"Ele Shark", 40075},
+    {"Ninja", 40035},
+    {"Blue Spider", 40110},
+    {"Angel Marsh", 40036},
+    {"Bat", 40008},
+    {"Psychic Scorpion", 40162},
+    {"FlyUnicorn", 40163},
+    {"Ghost Jelly", 40164},
+    {"Ghost Dog", 40165},
+    {"Masked Dragon", 40166},
+    {"Ice Bull", 40064},
+    {"Frozen Deer", 40111},
+    {"Dino", 40034},
+    {"Star", 40106},
+    {"Young Hedgehog", 40091},
+    {"Hellish Golem", 40115},
+    {"Spiny Crab", 40093},
+    {"Icegolem", 40104},
+    {"Ice Kitty", 40052},
+    {"Rhino", 40025},
+    {"Butterfly", 40098},
+    {"Ice Bear", 40056},
+    {"Ghost", 40167},
+    {"Dark Bee", 40074},
+    {"Fly Sugar", 40121},
+    {"Ice Bunny", 40063},
+    {"Reindeer", 40030},
+    {"Lua Bear", 40125},
+    {"Ice Dog", 40059},
+    {"Ice Fox", 40060},
+    {"Galactic Hedgehog", 40103},
+    {"Lizard", 40070},
+    {"LilDragon", 40031},
+    {"Blue Pig", 40061},
+    {"Pig", 40168},
+    {"Smile Deer", 40086},
+    {"Alien", 40042},
+    {"Turkey", 40114},
+    {"Unicorn", 40094},
+    {"Bull", 40026},
+    {"Mouse", 40006},
+    {"Bee", 40033},
+    {"Queen Bee", 40024},
+    {"Minor Penguin", 40089},
+    {"Penguin", 40058},
+    {"Tiny Elephant", 40004},
+    {"Elephant", 40007},
+    {"Yellow Bear", 40054},
+    {"Happy Bear", 40018},
+    {"Glowing Bear", 40090},
+    {"Fiery Cat", 40069},
+    {"Masked Bunny", 40099},
+    {"Masked Shark", 40100},
+    {"Bear", 40003},
+    {"Brown Bear", 40010},
+    {"Wolf", 40017},
+    {"Fiery Dog", 40065},
+    {"Lava Octopus", 40076},
+    {"Squint Mouse", 40169},
+    {"Duck", 40051},
+    {"Monkey", 40066},
+    {"Ankylosaurus", 40079},
+    {"Bird", 40170},
+    {"Fiery Lizard", 40078},
+    {"Fiery Dragon", 40068},
+    {"Rubik", 40045},
+    {"Turtle", 40021},
+    {"Smile Alien", 40095},
+    {"Dark Spider", 40071}
 }
 
 --==================================================
@@ -914,9 +1010,14 @@ local function showPurchasePanel(petName,id,category)
     corner(panel,12)
     stroke(panel,accent,1.6,.1)
 
-    local title=label(panel,decoratePetName(petName).."  •  ID "..id,
-        UDim2.new(0,10,0,5),UDim2.new(1,-20,0,23),WHITE,11,true)
+    local displayName = formatDisplayPetName(petName, category)
+    local title=label(panel,displayName.."  •  ID "..id,
+        UDim2.new(0,10,0,5),UDim2.new(1,-20,0,23),WHITE,11,true,true)
     title.ZIndex=21
+
+    if category == "Rainbow" or category == "Gold" then
+        applyAnimatedGradient(title, category)
+    end
 
     local amountLabel=new("TextLabel",{
         Position=UDim2.new(.5,-45,0,35),
@@ -995,8 +1096,13 @@ local function makePetButton(parent,pet,category)
     corner(b,10)
     stroke(b,categoryColor(category),1,.78)
 
-    label(b,decoratePetName(name),
-        UDim2.new(0,12,0,7),UDim2.new(1,-65,0,21),WHITE,13,true)
+    local displayName = formatDisplayPetName(name, category)
+    local lbl = label(b,displayName,
+        UDim2.new(0,12,0,7),UDim2.new(1,-65,0,21),WHITE,13,true,true)
+
+    if category == "Rainbow" or category == "Gold" then
+        applyAnimatedGradient(lbl, category)
+    end
 
     label(b,"ID: "..id.."  •  "..category,
         UDim2.new(0,12,0,29),UDim2.new(1,-65,0,16),MUTED,10,false)
@@ -1682,19 +1788,23 @@ local function showPets(pets,category)
 
     local scroll=createList()
 
+    local headerText = category=="Gold" and "🪙 GOLD PETS"
+        or category=="Rainbow" and "🌈 RAINBOW PETS"
+        or "🎨 COLORED PETS"
+
     local header=new("TextLabel",{
         Size=UDim2.new(1,-4,0,34),
         BackgroundTransparency=1,
-        Text=category=="Gold" and "🪙 GOLD PETS"
-            or category=="Rainbow" and "🌈 RAINBOW PETS"
-            or "🎨 COLORED PETS",
+        Text=headerText,
         TextColor3=WHITE,
         Font=Enum.Font.GothamBold,
         TextSize=15,
         TextXAlignment=Enum.TextXAlignment.Center
     },scroll)
 
-    applyTitleGradient(header,category=="Gold" and "Gold" or "Rainbow")
+    if category=="Gold" or category=="Rainbow" then
+        applyAnimatedGradient(header, category)
+    end
 
     local query=(Search.Text or ""):lower()
     local count=0
@@ -1943,4 +2053,4 @@ tween(Main,TweenInfo.new(.4,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{
 
 render()
 
-print("[Pet Trading Hub] Loaded - Gold/Rainbow/Colored + Emoji Decoration + Auto Drop + Auto Sell (Single) + Adidas")
+print("[Pet Trading Hub] Loaded - Rainbow (🌈 + Animated) + Gold (🪙 + Animated) + Colored ($R) + Auto Drop + Auto Sell + Adidas")
