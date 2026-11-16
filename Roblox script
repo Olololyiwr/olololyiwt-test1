@@ -9,7 +9,6 @@ Original Script: olololyiwr
 UI Design & Scripting Assistant: LUNA
 
 Original Bunny Fuse: ID 10001
-Experimental Fuse ID 10130: REMOVED
 ]]
 
 if not game:IsLoaded() then game.Loaded:Wait() end
@@ -409,7 +408,7 @@ local PetData = [[
 10133|Pumpkin
 10134|Lord
 10135|Reaper
-10136|Angelfly 🦋
+10136|Ghost 👻
 10137|Red Demon 👹
 10138|Godly Plume 🌀
 10139|Evolved Monkey 🐵
@@ -543,7 +542,7 @@ local ColoredPets = {
     {"Butterfly", 40098},
     {"Ice Bear", 40056},
     {"Sun Mouse", 40102},
-    {"Ghost", 40135}, -- ĐÃ FIX ID CHUẨN MUA ĐƯỢC
+    {"Ghost", 40136}, -- ĐÃ SỬA CHUẨN ID SHOP MÀU ($660,000)
     {"Ghost Jelly", 40117},
     {"Ghost Dog", 40129},
     {"Fly Ghost Jelly", 40117},
