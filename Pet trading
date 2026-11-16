@@ -5,9 +5,9 @@ COLORED (🎨 Colored $R)
 QUANTITY SELECTOR
 AUTO DROP + AUTO SELL + ADIDAS ANIMATION
 
-Original Script: olololyiwr
+idea maker: olololyiwr
 UI Design & Scripting Assistant: LUNA
-
+editor: Dương nhật my
 Original Bunny Fuse: ID 10001
 Experimental Fuse ID 10130: REMOVED
 ]]
@@ -498,7 +498,7 @@ for _,special in ipairs(RainbowSpecialPets) do
 end
 
 local ColoredPets = {
-    -- Nhóm pet giá rẻ (Ảnh cuối)
+    -- Nhóm pet giá rẻ
     {"Bunny", 40001},
     {"Brown Bunny", 40011},
     {"Rabbit", 40009},
@@ -512,7 +512,7 @@ local ColoredPets = {
     {"Doggy", 40081},
     {"Brown Dog", 40050},
 
-    -- Các nhóm pet đầy đủ từ ảnh shop
+    -- Các nhóm pet đầy đủ từ shop
     {"Yellow Dog", 40300},
     {"White Doggy", 40315},
     {"Panda", 40375},
@@ -649,12 +649,20 @@ local function purchasePet(id,amount)
         return false
     end
 
+    local targetId = tonumber(id)
+    local targetAmount = math.floor(tonumber(amount) or 1)
+
+    print("[Pet Hub] Đang gửi yêu cầu mua ID:", targetId, "Số lượng:", targetAmount)
+
     local ok,err=pcall(function()
-        SellRemote:FireServer("purchase",id,amount)
+        SellRemote:FireServer("purchase", targetId, targetAmount)
     end)
 
-    if not ok then warn("[Pet Hub] Purchase error:",err) end
-    return ok
+    if not ok then 
+        warn("[Pet Hub] Purchase error:",err) 
+        return false
+    end
+    return true
 end
 
 --==================================================
