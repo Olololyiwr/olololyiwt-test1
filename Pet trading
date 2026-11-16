@@ -5,9 +5,9 @@ COLORED (🎨 Colored $R)
 QUANTITY SELECTOR
 AUTO DROP + AUTO SELL + ADIDAS ANIMATION
 
-idea maker: olololyiwr
+Original Script: olololyiwr
 UI Design & Scripting Assistant: LUNA
-editor: Dương nhật my
+
 Original Bunny Fuse: ID 10001
 Experimental Fuse ID 10130: REMOVED
 ]]
@@ -278,7 +278,7 @@ local function applyAnimatedGradient(lbl,kind)
 end
 
 --==================================================
--- PET DATABASE - 145 NAMED PETS
+-- FULL PET DATABASE - 158 PETS
 --==================================================
 
 local MainPetCatalog = {}
@@ -301,6 +301,7 @@ local PetData = [[
 10017|Wolf
 10018|Happy Bear
 10019|Gray Dog
+10020|Headphones 🎧
 10021|Turtle
 10022|Scarf Black Pussy
 10024|Queen Bee
@@ -310,15 +311,22 @@ local PetData = [[
 10029|Koala
 10030|Reindeer
 10031|Lil Dragon
+10032|Angel 😇
 10033|Bee
 10034|Dino
 10035|Ninja
 10036|Angel Marsh
 10037|Golem
+10038|Shark 🦈
 10039|Green Cat
+10040|Dominus ❓
+10041|TV 🖥
 10042|Alien
+10043|Robot 🤖
 10044|Octopus
 10045|Rubik
+10046|Demon 👹
+10048|Sugar Angel 😇
 10049|Kitty
 10050|Brown Dog
 10051|Duck
@@ -350,13 +358,15 @@ local PetData = [[
 10077|Frog
 10078|Fiery Lizard
 10079|Ankylosaurus
+10080|Dark Dragon 🐲
 10081|Doggy
 10082|Boar
+10083|Lion 🦁
 10084|Fly Crab
 10085|Ant
 10086|Smile Deer
 10087|Crab
-10088|Lion
+10088|Wyvern 🐲
 10089|Minor Penguin
 10090|Glowing Bear
 10091|Young Hedgehog
@@ -364,58 +374,50 @@ local PetData = [[
 10093|Spiny Crab
 10094|Unicorn
 10095|Smile Alien
+10096|TriWyvern 🐲
 10097|Poppy
 10098|Butterfly
 10099|Masked Bunny
 10100|Masked Shark
+10101|Masked Dragon
 10102|Sun Mouse
 10103|Galactic Hedgehog
 10104|Icegolem
+10105|Wings Dragon 🐲
 10106|Star
+10107|Steampunk Dog 🐶
+10108|Steampunk Bull 🐃
 10110|Blue Spider
 10111|Frozen Deer
 10112|Blob
+10113|Evolved Dragon 🐲
 10114|Turkey
 10115|Hellish Golem
+10117|Fly Ghost Jelly 😇
 10119|Panda
 10120|Ugly Duck
 10121|Fly Sugar
 10122|Baby Lightning
+10123|Sword Ninja 🥷
+10124|Candy Mage 🧙
 10125|Lua Bear
+10128|Ghost Dragon 🐲
+10129|Ghost Psychic 👻
+10130|Tri Dominus ❓
 10131|Light Duck
 10132|Lightdemon
 10133|Pumpkin
 10134|Lord
 10135|Reaper
-10140|Infection
-10020|Headphones 🎧
-10032|Angel 😇
-10038|Shark 🦈
-10040|Dominus ❓
-10041|TV 🖥
-10043|Robot 🤖
-10046|Demon 👹
-10048|Sugar Angel 😇
-10080|Dark Dragon 🐲
-10083|Lion 🦁
-10105|Wings Dragon 🐲
-10107|Steampunk Dog 🐶
-10108|Steampunk Bull 🐃
-10113|Evolved Dragon 🐲
-10117|Fly Ghost Jelly 😇
-10123|Sword Ninja 🥷
-10124|Candy Mage 🧙
-10128|Ghost Dragon 🐲
-10129|Ghost Psychic 👻
-10096|TriWyvern 🐲
-10130|Tri Dominus ❓
 10136|Angelfly 🦋
 10137|Red Demon 👹
 10138|Godly Plume 🌀
 10139|Evolved Monkey 🐵
+10140|Infection
 10142|Lava Lord 👹
 10143|PuffEve 🕷
 10144|Ultimus 👹
+10145|Kraken
 10146|Shadow Dominus ❓
 10147|Dominus Ultimus ❓
 10148|RotateYB 🐲
@@ -452,6 +454,150 @@ for _,pet in ipairs(MainPetCatalog) do
     table.insert(RainbowPets,{pet[1],pet[2]+20000})
 end
 
+local ColoredPets = {
+    {"Bunny", 40001},
+    {"Brown Bunny", 40011},
+    {"Rabbit", 40009},
+    {"White Bunny", 40053},
+    {"Frog", 40077},
+    {"Green Cat", 40039},
+    {"Yellow Cat", 40057},
+    {"Kitten", 40002},
+    {"Kitty", 40049},
+    {"Black Pussy", 40015},
+    {"Doggy", 40081},
+    {"Brown Dog", 40050},
+    {"Yellow Dog", 40005},
+    {"White Doggy", 40014},
+    {"Panda", 40119},
+    {"Baby lightning", 40122},
+    {"Scarf Red Pussy", 40028},
+    {"Scarf Black Pussy", 40022},
+    {"Masked Bunny", 40099},
+    {"Masked Shark", 40100},
+    {"Masked Dragon", 40101},
+    {"Bear", 40003},
+    {"Brown Bear", 40010},
+    {"Gray Wolf", 40019},
+    {"Wolf", 40017},
+    {"Lava Octopus", 40076},
+    {"Squint Mouse", 40067},
+    {"Duck", 40051},
+    {"Ugly Duck", 40120},
+    {"Monkey", 40066},
+    {"Bull", 40026},
+    {"Mouse", 40006},
+    {"Bee", 40033},
+    {"Queen Bee", 40024},
+    {"Minor Penguin", 40089},
+    {"Penguin", 40058},
+    {"Tiny Elephant", 40004},
+    {"Elephant", 40007},
+    {"Yellow Bear", 40054},
+    {"Happy Bear", 40018},
+    {"Glowing Bear", 40090},
+    {"Fiery Cat", 40069},
+    {"LilDragon", 40031},
+    {"Blue Pig", 40061},
+    {"Pig", 40061},
+    {"Boar", 40082},
+    {"Smile Deer", 40086},
+    {"Deer", 40016},
+    {"Alien", 40042},
+    {"Cow", 40055},
+    {"Turkey", 40114},
+    {"Unicorn", 40094},
+    {"Lion", 40083},
+    {"Ankylosaurus", 40079},
+    {"Bird", 40084},
+    {"Fiery Lizard", 40078},
+    {"Raging Bull", 40073},
+    {"Fiery Dragon", 40068},
+    {"Octopus", 40044},
+    {"Rubik", 40045},
+    {"Koala", 40029},
+    {"Ant", 40085},
+    {"Turtle", 40021},
+    {"Smile Alien", 40095},
+    {"Dark Spider", 40071},
+    {"Dark Bee", 40074},
+    {"Fly Sugar", 40121},
+    {"Ice Bunny", 40063},
+    {"Reindeer", 40030},
+    {"Lua Bear", 40125},
+    {"Fly Deer", 40028},
+    {"Golem", 40037},
+    {"Fly Lizard", 40072},
+    {"Ice Dog", 40059},
+    {"Blue Dragon", 40062},
+    {"Ice Fox", 40060},
+    {"Galactic Hedgehog", 40103},
+    {"Dino", 40034},
+    {"Star", 40106},
+    {"Young Hedgehog", 40091},
+    {"Hellish Golem", 40115},
+    {"Spiny Crab", 40093},
+    {"Icegolem", 40104},
+    {"Ice Kitty", 40052},
+    {"Rhino", 40025},
+    {"Butterfly", 40098},
+    {"Ice Bear", 40056},
+    {"Sun Mouse", 40102},
+    {"Ghost", 40135}, -- ĐÃ FIX ID CHUẨN MUA ĐƯỢC
+    {"Ghost Jelly", 40117},
+    {"Ghost Dog", 40129},
+    {"Fly Ghost Jelly", 40117},
+    {"Ghost Dragon", 40128},
+    {"Dragon", 40062},
+    {"Headphones", 40020},
+    {"Ice Bull", 40064},
+    {"Frozen Deer", 40111},
+    {"Sugar Angel", 40048},
+    {"TV", 40041},
+    {"Sword Ninja", 40123},
+    {"Shark", 40038},
+    {"Ele Shark", 40075},
+    {"Ninja", 40035},
+    {"Blue Spider", 40110},
+    {"Angel Marsh", 40036},
+    {"Bat", 40008},
+    {"Demon", 40046},
+    {"Psychic Scorpion", 40129},
+    {"FlyUnicorn", 40094},
+    {"Candy Mage", 40124},
+    {"Steampunk Dog", 40107},
+    {"Steampunk Bull", 40108},
+    {"Steampunk Dragon", 40068},
+    {"Robot", 40043},
+    {"Cloud Wyvern", 40092},
+    {"Fly Crab", 40084},
+    {"Crab", 40087},
+    {"Evolved Dragon", 40113},
+    {"Blob", 40112},
+    {"Ghost Psychic", 40129},
+    {"Angel", 40032},
+    {"Wyvern", 40088},
+    {"Wings Dragon", 40105},
+    {"Dark Dragon", 40080},
+    {"Dominus", 40040},
+    {"TriWyvern", 40096},
+    {"Kraken", 40145},
+    {"Demonic Dominus", 40137},
+    {"Shadow Dominus", 40146},
+    {"Dominus Anger", 40156},
+    {"Hungry Frogs", 40157},
+    {"Evolved Monkey Epic", 40158},
+    {"Dominus Ultimus", 40147},
+    {"RotateYB", 40148},
+    {"Rotate Black Blue", 40149},
+    {"Lighting Bull Blue", 40150},
+    {"Abyssal Star", 40151},
+    {"Star Of Lakshmi", 40152},
+    {"Evolved Sandy Vortex", 40153},
+    {"Arcc", 40154},
+    {"Rose", 40155}
+}
+
 local RainbowSpecialPets = {
     {"Tri Dominus ❓",30130},
     {"TriWyvern 🐲",30096},
@@ -468,9 +614,9 @@ local RainbowSpecialPets = {
     {"Godly Plume 🌀",30138},
     {"Shadow Dominus ❓",30146},
     {"Dominus Ultimus ❓",30147},
-    {"Lighting Bull Blue 🐲",30150},
-    {"Rotate Black Blue 🐲",30149},
     {"RotateYB 🐲",30148},
+    {"Rotate Black Blue 🐲",30149},
+    {"Lighting Bull Blue 🐲",30150},
     {"Star Of Lakshmi 🧽",30152},
     {"Rose 🦋",30155},
     {"Arcc 🦋",30154},
@@ -480,7 +626,8 @@ local RainbowSpecialPets = {
     {"Hungry Progs 🐸",30157},
     {"Dominus Anger ❓",30156},
     {"Poppy 🧸",30097},
-    {"Pumpkin 🎃",30133}
+    {"Pumpkin 🎃",30133},
+    {"Masked Dragon 🐲",30101}
 }
 
 for _,special in ipairs(RainbowSpecialPets) do
@@ -496,137 +643,6 @@ for _,special in ipairs(RainbowSpecialPets) do
         table.insert(RainbowPets,{special[1],special[2]})
     end
 end
-
-local ColoredPets = {
-    -- Nhóm pet giá rẻ
-    {"Bunny", 40001},
-    {"Brown Bunny", 40011},
-    {"Rabbit", 40009},
-    {"White Bunny", 40053},
-    {"Frog", 40077},
-    {"Green Cat", 40039},
-    {"Yellow Cat", 40057},
-    {"Kitten", 40002},
-    {"Kitty", 40049},
-    {"Black Pussy", 40015},
-    {"Doggy", 40081},
-    {"Brown Dog", 40050},
-
-    -- Các nhóm pet đầy đủ từ shop
-    {"Yellow Dog", 40300},
-    {"White Doggy", 40315},
-    {"Panda", 40375},
-    {"Baby lightning", 40400},
-    {"Scarf Red Pussy", 40445},
-    {"Scarf Black Pussy", 40580},
-    {"Masked Bunny", 40650},
-    {"Masked Shark", 40690},
-    {"Bear", 40720},
-    {"Brown Bear", 40850},
-    {"Gray Wolf", 41100},
-    {"Lava Octopus", 409040},
-    {"Squint Mouse", 40135},
-    {"Duck", 41225},
-    {"Ugly Duck", 41280},
-    {"Monkey", 41339},
-    {"Bull", 41340},
-    {"Mouse", 41620},
-    {"Bee", 41890},
-    {"Queen Bee", 42140},
-    {"Minor Penguin", 42280},
-    {"Penguin", 42370},
-    {"Tiny Elephant", 43180},
-    {"Elephant", 43840},
-    {"Yellow Bear", 44380},
-    {"Happy Bear", 44840},
-    {"Glowing Bear", 44960},
-    {"Fiery Cat", 45040},
-    {"LilDragon", 45230},
-    {"Blue Pig", 45570},
-    {"Pig", 45860},
-    {"Boar", 45990},
-    {"Smile Deer", 46070},
-    {"Deer", 46120},
-    {"Alien", 47620},
-    {"Cow", 48300},
-    {"Turkey", 48330},
-    {"Unicorn", 40600},
-    {"Lion", 48400},
-    {"Ankylosaurus", 48520},
-    {"Bird", 48690},
-    {"Fiery Lizard", 48740},
-    {"Raging Bull", 48780},
-    {"Fiery Dragon", 48830},
-    {"Octopus", 48940},
-    {"Rubik", 49120},
-    {"Koala", 49250},
-    {"Ant", 49300},
-    {"Turtle", 49350},
-    {"Smile Alien", 49390},
-    {"Dark Spider", 49410},
-    {"Dark Bee", 49420},
-    {"Fly Sugar", 49425},
-    {"Ice Bunny", 49430},
-    {"Reindeer", 49490},
-    {"Lua Bear", 49590},
-    {"Fly Deer", 49690},
-    {"Golem", 49790},
-    {"Fly Lizard", 49830},
-    {"Ice Dog", 49850},
-    {"Blue Dragon", 49900},
-    {"Ice Fox", 49920},
-    {"Galactic Hedgehog", 49930},
-    {"Dino", 49945},
-    {"Star", 49950},
-    {"Young Hedgehog", 49955},
-    {"Hellish Golem", 49959},
-    {"Spiny Crab", 49960},
-    {"Icegolem", 49965},
-    {"Ice Kitty", 409970},
-    {"Rhino", 409980},
-    {"Butterfly", 409990},
-    {"Ice Bear", 410000},
-    {"Sun Mouse", 410800},
-    {"Ghost", 410950},
-    {"Ghost Jelly", 411270},
-    {"Ghost Dog", 411350},
-    {"Fly Ghost Jelly", 411430},
-    {"Ghost Dragon", 411500},
-    {"Dragon", 411580},
-    {"Headphones", 413150},
-    {"Masked Dragon", 413920},
-    {"Ice Bull", 414690},
-    {"Frozen Deer", 415450},
-    {"Sugar Angel", 416200},
-    {"TV", 419180},
-    {"Sword Ninja", 420640},
-    {"Shark", 422080},
-    {"Ele Shark", 423500},
-    {"Ninja", 424900},
-    {"Blue Spider", 426280},
-    {"Angel Marsh", 427650},
-    {"Bat", 430320},
-    {"Demon", 432930},
-    {"Psychic Scorpion", 434200},
-    {"FlyUnicorn", 435470},
-    {"Candy Mage", 436100},
-    {"Steampunk Dog", 436720},
-    {"Steampunk Bull", 437340},
-    {"Steampunk Dragon", 437700},
-    {"Robot", 437950},
-    {"Cloud Wyvern", 438560},
-    {"Fly Crab", 439170},
-    {"Crab", 439770},
-    {"Evolved Dragon", 440000},
-    {"Blob", 40130},
-    {"Ghost Psychic", 40250},
-    {"Angel", 40370},
-    {"Wyvern", 40960},
-    {"Wings Dragon", 41318},
-    {"Dark Dragon", 41550},
-    {"Dominus", 42730},
-    {"TriWyvern", 472300}
-}
 
 --==================================================
 -- REMOTES
@@ -2072,4 +2088,4 @@ tween(Main,TweenInfo.new(.4,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{
 
 render()
 
-print("[Pet Trading Hub] Loaded - Rainbow (🌈 + Animated) + Gold (🪙 + Animated) + Colored ($R) + Auto Drop + Auto Sell + Adidas")
+print("[Pet Trading Hub] Loaded - Ghost Colored Fixed + 158 Pets Complete")
