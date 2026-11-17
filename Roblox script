@@ -400,6 +400,7 @@ local PetData = [[
 10123|Sword Ninja 🥷
 10124|Candy Mage 🧙
 10125|Lua Bear
+10126|Ghost 👻
 10128|Ghost Dragon 🐲
 10129|Ghost Psychic 👻
 10130|Tri Dominus ❓
@@ -408,7 +409,7 @@ local PetData = [[
 10133|Pumpkin
 10134|Lord
 10135|Reaper
-10136|Ghost 👻
+10136|Angelfly 🦋
 10137|Red Demon 👹
 10138|Godly Plume 🌀
 10139|Evolved Monkey 🐵
@@ -542,7 +543,7 @@ local ColoredPets = {
     {"Butterfly", 40098},
     {"Ice Bear", 40056},
     {"Sun Mouse", 40102},
-    {"Ghost", 40136}, -- ĐÃ SỬA CHUẨN ID SHOP MÀU ($660,000)
+    {"Ghost", 40126}, -- ĐÃ FIX CHUẨN ID 40126 (10126 + 30000) CHO TAB COLORED
     {"Ghost Jelly", 40117},
     {"Ghost Dog", 40129},
     {"Fly Ghost Jelly", 40117},
@@ -2087,4 +2088,4 @@ tween(Main,TweenInfo.new(.4,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{
 
 render()
 
-print("[Pet Trading Hub] Loaded - Ghost Colored Fixed + 158 Pets Complete")
+print("[Pet Trading Hub] Loaded - Ghost ID 10126 Fixed Complete")
